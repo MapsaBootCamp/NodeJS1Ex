@@ -23,6 +23,7 @@ class PlayerURLPath extends MediaPlayer{
 interface Filam{
     getPath(path:string):string
 }
+
 class InternalPath implements Filam{
     getPath(path: string): string {
         return `file system : ${path}`
