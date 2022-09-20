@@ -11,10 +11,10 @@ function maxCashOfInvitedFriends(pro) {
                     c++     // baraye vaghti k tabe bazgashti hich taghiri nakard o haghiri tush nabud
             }  
         }
-        let sum = stack.reduce((acc, val,ind) => { return acc+val.c},0)
+        let sum = stack.reduce((acc, val) => { return acc+val.c},0)
         if(max< sum)    max=sum
         if (stack.length>2) {
-            if (stack.length==c+1)  return sum
+            if (stack.length === c+1)  return sum
             maxCashOfInvitedFriends(stack)
         }
         stack = []

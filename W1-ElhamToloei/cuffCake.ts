@@ -1,5 +1,5 @@
 const cake = [1 ,3, 4, 2]
-const students = 1
+const students = 3
 
 function minCost(cake:number[], numOfStu: number): number {
     let minCash: number = 0
@@ -8,11 +8,11 @@ function minCost(cake:number[], numOfStu: number): number {
             minCash = cake[j] > cake[j+1] ? cake[j] : cake[j+1]
         }        
     else if (numOfStu === 2) {
-        minCash = cake[0] > cake[length-1] ?    cake[0] : cake[length-1]
+        minCash = cake[0] > cake[cake.length-1] ?    cake[0] : cake[cake.length-1]
     }
     else
         for(let j=0; j < cake.length - 1; j++){
-            minCash = cake[j] < cake[j+1] ? cake[j] : cake[j+1]
+            minCash = cake[0] < cake[j+1] ? cake[0] : cake[j+1]
         }  
     return minCash
 }
