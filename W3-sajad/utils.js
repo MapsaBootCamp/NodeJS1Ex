@@ -30,18 +30,29 @@ async function examGenerator(category,userId){
             if(err) reject(err)
             else{
                 const newExam = rows
-                for(let i=0;i<5;i++){
-                    console.log('start inserting');
-                    console.log(newExam[i].q_id);
-                    db.run('INSERT INTO exams VALUES(MAX(exam_id)+1,?,?,?)',newExam[i].q_id,userId,null,null,(err)=>{
-                        if(err){reject(err)
-                        console.log('there is an error');} 
+                db.serialize(()=>{
+                    const lastExamId = db.get(`SELECT MAX(exam_id) FROM exams`,(err,row)=>{
+                        if(err){ throw err}
+                        else if(row['MAX(exam_id)']) { 
+                            console.log(row)
+                            console.log('max');
+                            return row }
+                        else return 1
                     })
-
-                }
-                console.log('Generating exam is done.');
-                console.log(newExam);
-                resolve (newExam)
+                    const stmt = db.prepare('INSERT INTO exams VALUES(?,?,?,?)',()=>{console.log(lastExamId);})
+                    for(let i=0;i<5;i++){
+                        console.log('start inserting');
+                        console.log(newExam[i].q_id);
+                        stmt.run(lastExamId,newExam[i].q_id,userId,null,null,(err)=>{
+                            if(err){console.log('there is an error');
+                                throw err
+                            }})}
+                    stmt.finalize((err)=>{
+                        if(err) throw err
+                        else{
+                            console.log('Generating exam is done.');
+                            console.log(newExam);
+                            resolve (newExam)}})})
             }
         })
     })

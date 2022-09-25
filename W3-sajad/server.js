@@ -1,5 +1,4 @@
 const express = require('express')
-const { keyBy } = require('lodash')
 const db = require('./config/database')
 const {getUser,examGenerator,userUpdater} = require('./utils')
 
@@ -64,8 +63,8 @@ app.post('/:username/exam',async (req,res)=>{
                     ,q_id,user_id) ON q.q_id = exam.q_id WHERE exam.user_id = ? `,founcedUserName.user_id,(err,rows)=>{
                         if(err) res.status(500).json({'error':err.message})
                         let score =0;
-                        const userAsnwers = [...req.body]
-                        const answers = [...rows]
+                        const userAsnwers = req.body
+                        const answers = rows
                         for(let i= 0;i<5;i++){
                             if(userAsnwers[i] == answers[i]) {
                                 score ++
