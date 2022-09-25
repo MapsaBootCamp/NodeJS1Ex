@@ -14,8 +14,7 @@ const db = new sqlite.Database('db.sqlite',(err)=>{
         db.run(`CREATE TABLE IF NOT EXISTS users(
                 user_id INTEGER PRIMARY KEY,
                 username TEXT NOT NULL UNIQUE,
-                last_exam INTEGER NOT NULL CHECK (last_exam IN (0,1)),
-                last_exam_id INTEGER 
+                last_exam INTEGER NOT NULL CHECK (last_exam IN (0,1))
         )`,(err)=>{
             if(err){
                 throw err.message
