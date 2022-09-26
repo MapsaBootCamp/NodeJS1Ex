@@ -31,10 +31,10 @@ const db = new sqlite.Database('db.sqlite',(err)=>{
             }
         })
         db.run(`CREATE TABLE IF NOT EXISTS exams(
-            exam_id INTEGER PRIMARY KEY ,
+            exam_id INTEGER NOT NULL ,
             q_id,
             user_id,
-            exam_score INTEGER NULL ,
+            exam_score INTEGER ,
             FOREIGN KEY(q_id)
                 REFERENCES questions(q_id),
             FOREIGN KEY(user_id)
