@@ -1,5 +1,10 @@
-Rewrite store with typescript.  
-Mediaplayer problem       
-team1: Prototype Design Pattern     
-team2: Mediator Design Pattern      
-team3: Strategy Design Pattern      
+## Tasks
+
+1. Rewrite store with typescript
+2. MediaPlayer problem
+
+## Teams
+
+* Team 1: Prototype Design Pattern
+* Team 2: Mediator Design Pattern
+* Team 3: Strategy Design Pattern
