@@ -46,7 +46,7 @@ async function dbGetArrayOfObject(query, param){
 async function getResult(username){
   const result = [null, null]
   try{
-      result[1] = await dbGetArrayOfObject("SELECT * from Results WHERE user = ?", username)
+      result[1] = await dbGetArrayOfObject("SELECT quiz, score from Results WHERE user = ?", username)
     }catch(err){
       result[0] = err
   }
@@ -91,7 +91,6 @@ async function makeQuizNumber(username, res) {
       })
   }else{
     if(Object.values(quizNumberObj) >= 1){
-        console.log("if");
         return  quizNumberObj[Object.keys(quizNumberObj)] +=1
       }
     else{
@@ -133,58 +132,11 @@ async function generateQuiz(num, username, res) {
 }
 
 
-
-
-// async function getQuiz(id){
-//   const result = [null, null]
-//   try{
-//       result[1] = await dbGetArrayOfObject("SELECT * from Questions WHERE quiz_number = ?", id)
-//     }catch(err){
-//       result[0] = err
-//   }
-//   return result;
-// }
-
-  
-
-//   async function generateQuiz(id, num) {
-//     const [err, questsObj] = await getQuestion(num)
-//     if(err){
-//       return res.status(500).json({
-//           "err": err.message
-//       })
-//   }else if(!questsObj){
-//       return res.status(400).json({
-//           "err": "bank soal khalie"
-//       })
-//   }
-//   else{
-
-//   }
-//     db.all("SELECT * FROM Questions ORDER BY random() LIMIT 3", (err, row) => {
-//         if(err){
-//             console.log(err.message);
-//             return res.status(500).send(err)
-//         }else{
-//             db.run("INSERT INTO")
-//             return res.json({
-//                 "quizResult": row
-//             })
-//         }
-//     })
-// }
-
- 
-
-  
-
   module.exports = {
     getUser,
     userExist,
     getResult,
     getState,
-    makeQuizNumber,
     generateQuiz,
-    getQuestion
-    // getQuiz
+    getQuizNumber
   }

@@ -1,11 +1,11 @@
 const express = require("express")
 const router = express.Router()
 const db = require("../config/database")
-const {userExist, getResult, getState, generateQuiz} = require('../utils');
+const {userExist, getResult, getState, generateQuiz, getQuizNumber} = require('../utils');
 
 
 router.route("/")
-  .get(async(req, res) => {  //list shomaye quizhaye mojud ro mide
+  .get(async(req, res) => {  //list quizhaye mojud ro mide
     const username = req.body.username;    
     await userExist(username, res)
     
@@ -21,8 +21,9 @@ router.route("/")
     }
     else{
         console.log(resultObj);
+
         return res.json({
-            "quizResult": row  ///////////////////eshtebehe
+            "quizResult": resultObj  
         })
     }
   })
@@ -37,7 +38,7 @@ router.route("/")
             "err": err.message
         })
     }
-    else if(userObj){
+    else if(userObj){   //bug: poshte ham k request bezani hamun azmun ro poshte ham tekrar mikone
         db.all(`SELECT Quizes.question_id, question, option1, option2, option3, option4 FROM Questions
                 INNER JOIN Quizes ON Questions.question_id = Quizes.question_id`, (err, row) => {
                     if(err){
@@ -56,133 +57,48 @@ router.route("/")
     }
   })
 
-//   `UPDATE table_name
-//     SET column1 = value1, column2 = value2...., columnN = valueN
-//     WHERE [condition];`
-
   .put(async(req, res) => {    // daryafte javabe karbar
-    const object = req.body;
-    console.log(object);
-    let i =0
-    for (const key in object) {
-        // if (Object.hasOwnProperty.call(object, key)) {
-            console.log("round",i++);
-            console.log(key);
-            const value = object[key]
-            console.log(value);
-        // }
+    const username = req.body.username
+    const [err, quizNumberObj] = await getQuizNumber(username);
+    if(err){
+        return res.status(500).json({
+            "err": err.message
+        })
+    }else{
+        db.serialize(async() => {
+            const stmt = db.prepare(`UPDATE Quizes SET user_answer = (?) WHERE user=(?) AND question_id = (?) AND quiz_number=(?)`);
+                for (const key in req.body) {
+                    stmt.run([`option${req.body[key]}`, username, key, quizNumberObj[Object.keys(quizNumberObj)]]);
+                }
+            stmt.finalize();
+            //mishe ghable in k bezarim tu db moghayese konim
+            db.all(`SELECT Quizes.question_id, correct_answer, user_answer FROM Questions
+            INNER JOIN Quizes ON Questions.question_id = Quizes.question_id WHERE user= ? AND quiz_number=?`,
+                [username, quizNumberObj[Object.keys(quizNumberObj)]], (err, row) => {
+                if(err){
+                    return res.status(500).send(err)
+                }else{
+                    let score = 0
+                    for (let i = 0; i < row.length; i++) {
+                        if (row[i].correct_answer === row[i].user_answer) {
+                            score += 10                        
+                        }                    
+                    }
+                    const total = (row.length + 0) * 10     // +1 nemikonim chon araye ye username ezafe dare
+                    db.run(`UPDATE Results SET score = ? , state = 1 WHERE user =? AND quiz =?`,[score, username, quizNumberObj[Object.keys(quizNumberObj)]])
+                    return res.json({
+                        "note": "natije moghayeswie azmun",
+                        "score": `${score}/${total}`, 
+                        "compare": row
+                    })
+                }
+            })
+        })
     }
-    
-    // db.run(`UPDATE Quizes
-    // SET user_answer = ?
-    // WHERE question_id = ?;`) 
-
-    // db.run(`UPDATE Results
-    // SET state = 1, score = ?
-    // WHERE ();`)
-
+    // return res.status(200).json({
+    //     "happiness": "javab ha daryaft shod"
+    //   })
   })
   
-
-
-
-
-
-
-// router.route("/:id")
-//   .get((req, res) => {  // list soalate quize morede nazar ro mide
-//     const id = req.params.id;
-//     db.all(`SELECT question, answer, option1, option2 from Questions WHERE quiz_number = ${id}`,(err, row) => {
-//       if(err){
-//           console.log(err.message);
-//           return res.status(500).send(err)
-//       }else{
-//           return res.json({
-//               "quiz": row
-//           })
-//       }
-//     })
-//   })
-    
-
-// router.route("/:username/:id")
-//   .put(async (req, res) => {    //javeb azmun ersal mishe va nomre daryaft mishe
-
-//     const username = req.params.username;    
-//     const [err, userObj] = await getUser(username);
-//     if(err){
-//         return res.status(500).json({
-//             "err": err.message
-//         })
-//     }else if(!userObj){
-//         return res.status(400).json({
-//             "err": "hamchin useri nadarim"
-//         })
-//     }
-
-//     const id = req.params.id;
-//     const [error, quizObj] = await getQuiz(id);
-//     if(error){
-//       return res.status(500).json({
-//           "err": err.message
-//       })
-//     }else if(!quizObj[0].quiz_number){
-//       return res.status(400).json({
-//           "err": "hamchin quizi nadarim"
-//       })
-//     }    
-
-//     if (db.get("SELECT EXISTS (SELECT user, quiz FROM Quizes WHERE user=? AND quiz=?)", [username, quizObj[0].quiz_number] )) {
-//       return res.send("ghablan anjam shode") 
-//       // aya darkhaste azmune jadid darid?
-//     } 
-//     else{
-//       let score = 0;
-//     for (const key in quizObj) {      
-//       let userAnswer = req.body[key].user_answer
-//       let point = userAnswer == quizObj[key].answer ? 1 : 0      
-//       db.run(`INSERT INTO Quizes(user, question, quiz, user_answer, point) VALUES(?, ?, ?, ?, ?)`, [
-//         username, quizObj[key].question_id, id, userAnswer,point]
-//       )      
-//       score += point
-//     }
-//     res.send(`javabha barresi shod, nomre azmun shoma ${score} az ${quizObj.length} mibashad`)
-//     }
-
-//   })
-
-//   .get((req, res) => { // namayeshe histori azmun
-//     db.all("SELECT * FROM Quizes WHERE user=? AND quiz=?", [req.params.username, req.params.id], (err, row) => {
-//       if(err){
-//           console.log(err.message);
-//           return res.status(500).send(err)
-//       }else{
-//           return res.json({
-//               "quizResult": row
-//           })
-//       }
-//     })
-//   })
-
-
-
-// router.post("/:username/:id", (req, res) => {
-  
-//   db.all("SELECT * FROM Questions ORDER BY random() LIMIT 3", (err) => {
-//     if(err){
-//       console.log(err.message);
-//       return res.status(500).send(err)
-//   }else{
-//       return res.json({
-//           "quizResult": row
-//       })
-//   }
-//   })
-// })
-
-  
-
-
-
 
 module.exports = router
