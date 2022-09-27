@@ -17,6 +17,7 @@ app.use("/user",  userRouter)
 
 const quizRouter = require("./routes/quiz")
 app.use("/quiz",  quizRouter)
+// app.use("/quiz", (req, res) => {res.sendFile(path.join(__dirname+'/../html/quiz.html')); },  quizRouter)
 
 const PORT = 3000;
 app.listen(PORT, () => {

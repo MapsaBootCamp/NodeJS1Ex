@@ -20,8 +20,7 @@ const db = new sqlite3.Database(db_OQ, err => {
         // console.log("Successful creation of the 'Users' table");
       });
 
-      const sql_insert_users = `INSERT INTO Users (username) VALUES (? , ?),(?),(?);`;
-
+      const sql_insert_users = `INSERT INTO Users (username) VALUES (?),(?),(?);`;
       db.run(sql_insert_users, "elham", "mahdi", "negin", err => {
         if (err) {
           return console.error(err.message);
@@ -34,21 +33,22 @@ const db = new sqlite3.Database(db_OQ, err => {
       db.run(`CREATE TABLE IF NOT EXISTS Questions(
         question_id INTEGER PRIMARY KEY,
         question TEXT NOT NULL UNIQUE,
-        answer TEXT NOT NULL,
         option1 TEXT NOT NULL,
         option2 TEXT NOT NULL,
-        quiz_number INTEGER
+        option3 TEXT NOT NULL,
+        option4 TEXT NOT NULL,
+        correct_answer TEXT NOT NULL
       )`, err => {
         if (err) {
           return console.error(err.message);
         }
         // console.log("Successful creation of the 'Questions' table");
 
-        const sql_insert_ques = `INSERT INTO Questions (question, answer, option1, option2, quiz_number) 
-        VALUES ("2*2=" , "4", "3", "2", 1),
-          ("JavaScript side" , "both", "back", "front", 1),
-          ("Area of circle is ", "pr^2", "2pr", "hpr", 1),
-          ("vahede hajm", "m^3", "m^2", "m", 2)` 
+        const sql_insert_ques = `INSERT INTO Questions (question, option1, option2, option3, option4, correct_answer) 
+        VALUES ("2*2=" , "2.5", "3", "2", "4", "option4"),
+          ("JavaScript side" , "back", "front", "both", "non of them", "option3"),
+          ("Area of circle is ", "pr^2", "2pr", "hpr" , "1/3prh", "option1"),
+          ("vahede hajm", "m^4", "m^3", "m^2", "m", "option2")` 
 
           db.run(sql_insert_ques, err => {
           if (err) {
@@ -59,18 +59,36 @@ const db = new sqlite3.Database(db_OQ, err => {
       });
 
 
-      //db Quiz
+      //db Quiz generator
       db.run(`CREATE TABLE IF NOT EXISTS Quizes(
         user VARCHAR(100),
-        question INTEGER,
-        quiz INTEGER,
+        question_id INTEGER,
+        quiz_number INTEGER ,
         user_answer TEXT,
-        point INTEGER NOT NULL,
-        CONSTRAINT Quizes_pk PRIMARY KEY (user, question, quiz)
+        CONSTRAINT Results_pk PRIMARY KEY (user, question_id, quiz_number)
         FOREIGN KEY (user)
             REFERENCES Users(username)
-        FOREIGN KEY (question)
+        FOREIGN KEY (question_id)
             REFERENCES Questions(question_id)
+      )`, err => {
+        if (err) {
+          return console.error(err.message);
+        }
+        // console.log("Successful creation of the 'Quizes' table");
+      });
+
+
+      //db  result of quiz 
+      db.run(`CREATE TABLE IF NOT EXISTS Results(
+        user VARCHAR(100),
+        quiz INTEGER,
+        score INTEGER,
+        state INTEGER NOT NULL DEFAULT 0 CHECK (state IN (0, 1)),
+        CONSTRAINT Results_pk PRIMARY KEY (user, quiz)
+        FOREIGN KEY (user)
+            REFERENCES Quizes(user)
+        FOREIGN KEY (quiz)
+            REFERENCES Quizes(quiz_number)
       )`, err => {
         if (err) {
           return console.error(err.message);

@@ -22,10 +22,11 @@ router.route("/")
                 "err": "username field is required!"
             })
         }else{
-            db.run(`INSERT INTO Users(username)
-                    VALUES(?)
-            `, [req.body.username], (err) => {
+
+            db.run(`INSERT INTO Users(username) VALUES(?)`, [req.body.username]
+            , (err) => {
                 if(err) return res.status(400).json({"errMessage": err.message})
+                // sakhte azmune pishfarz aya?
                 return res.status(201).json(
                     {
                         "messgae": "user created",
